@@ -83,26 +83,16 @@ verbose_ignored = False
 verbose_trailer = "meckerfritze verbose details:\n"
 
 check_members     = sorted([mod for mod in sys.modules if mod.startswith('checks_members.')])
-for mod in check_members:
-    check_func = getattr(sys.modules[mod], 'check')
-    result = check_func(members,mod.split('.',2)[1])
-    if result[0] == False:
-        warnings[mod]      = len(result[1])
-        acknowledged[mod]  = 0
-        ignored[mod]       = 0
-        if verbose:
-            if verbose_trailer:
-                print verbose_trailer
-                verbose_trailer = False
-            print mod
-            for warn in result[1]:
-                print " ", warn
-
-
 check_members_raw = sorted([mod for mod in sys.modules if mod.startswith('checks_members_raw.')])
-for mod in check_members_raw:
+for mod in check_members + check_members_raw:
     check_func = getattr(sys.modules[mod], 'check')
-    result = check_func(members_raw,mod.split('.',2)[1])
+    if mod.startswith('checks_members.'):
+        result = check_func(members,mod.split('.',2)[1])
+    elif mod.startswith('checks_members_raw.'):
+        result = check_func(members_raw,mod.split('.',2)[1])
+    else:
+        raise Exception("Unknown check type")
+
     if result[0] == False:
         warnings[mod]      = len(result[1])
         acknowledged[mod]  = 0
@@ -126,9 +116,15 @@ for member_raw in sorted(members_raw):
     member = [member for member in members if int(member["Adressnummer"]) == int(member_raw['AdrNr'])][0]
 
     verbose_member_header = True
-    for mod in check_member:
+    for mod in check_member + check_member_raw:
         check_func = getattr(sys.modules[mod], 'check')
-        result = check_func(member, mod.split('.',2)[1])
+        if mod.startswith('checks_member.'):
+            result = check_func(member,mod.split('.',2)[1])
+        elif mod.startswith('checks_member_raw.'):
+            result = check_func(member_raw,mod.split('.',2)[1])
+        else:
+            raise Exception("Unknown check type")
+
         if result[0] == False:
             warn = 0
             ack  = 0
@@ -154,37 +150,6 @@ for member_raw in sorted(members_raw):
                     verbose_trailer = False
                 if verbose_member_header:
                     print "member (%d/'%s'):" % (int(member['Adressnummer']), member['Crewname'])
-                    verbose_member_header = False
-                print " ", mod, result[1]
-
-    for mod in check_member_raw:
-        check_func = getattr(sys.modules[mod], 'check')
-        result = check_func(member_raw, mod.split('.',2)[1])
-        if result[0] == False:
-            warn = 0
-            ack  = 0
-            ign  = 0
-
-            if member["Status"] in ['blocked', 'ex-crew', 'ex-raumfahrer']:
-                ign  = 1
-            else:
-                warn = 1
-
-            if mod in warnings:
-                warnings[mod]     += warn
-                acknowledged[mod] += ack
-                ignored[mod]      += ign
-            else:
-                warnings[mod]      = warn
-                acknowledged[mod]  = ack
-                ignored[mod]       = ign
-
-            if verbose and (warn or verbose_ignored):
-                if verbose_trailer:
-                    print verbose_trailer
-                    verbose_trailer = False
-                if verbose_member_header:
-                    print "member (%d/'%s'):" % (int(member_raw['AdrNr']), member_raw['Kurzname'])
                     verbose_member_header = False
                 print " ", mod, result[1]
 

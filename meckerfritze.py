@@ -7,6 +7,7 @@ import os
 import requests
 import traceback
 from prettytable import PrettyTable
+from pprint import pprint
 
 # ensure utf-8 encoding
 import sys
@@ -25,10 +26,7 @@ def load_all_modules_from_dir(dirname):
             module = importer.find_module(package_name
                         ).load_module(full_package_name)
 
-load_all_modules_from_dir('checks_members')
-load_all_modules_from_dir('checks_members_raw')
-load_all_modules_from_dir('checks_member')
-load_all_modules_from_dir('checks_member_raw')
+load_all_modules_from_dir('checks')
 
 # getting all of the member information
 members = {}
@@ -82,46 +80,54 @@ verbose         = True
 verbose_ignored = False
 verbose_trailer = "meckerfritze verbose details:\n"
 
-check_members     = sorted([mod for mod in sys.modules if mod.startswith('checks_members.')])
-check_members_raw = sorted([mod for mod in sys.modules if mod.startswith('checks_members_raw.')])
-for mod in check_members + check_members_raw:
+check_all = sorted([mod for mod in sys.modules if mod.startswith('checks.a')])
+for mod in check_all:
     check_func = getattr(sys.modules[mod], 'check')
-    if mod.startswith('checks_members.'):
-        result = check_func(members,mod.split('.',2)[1])
-    elif mod.startswith('checks_members_raw.'):
-        result = check_func(members_raw,mod.split('.',2)[1])
+    check_id    = mod.split('.',1)[1]
+    check_name  = check_id.split('_',1)[1]
+    check_flags = list(check_id.split('_',1)[0])
+    if mod.startswith('checks.a_'):
+        result = check_func(members,check_name)
+    elif mod.startswith('checks.ar_'):
+        result = check_func(members_raw,check_name)
     else:
-        raise Exception("Unknown check type")
+        raise Exception("Unknown check type for check_all")
 
     if result[0] == False:
-        warnings[mod]      = len(result[1])
-        acknowledged[mod]  = 0
-        ignored[mod]       = 0
+        warnings[check_name]      = len(result[1])
+        acknowledged[check_name]  = 0
+        ignored[check_name]       = 0
         if verbose:
             if verbose_trailer:
                 print verbose_trailer
                 verbose_trailer = False
-            print mod
+            print check_name
             for warn in result[1]:
                 print " ", warn
 
 if not verbose_trailer:
     print
 
-check_member      = sorted([mod for mod in sys.modules if mod.startswith('checks_member.')])
-check_member_raw  = sorted([mod for mod in sys.modules if mod.startswith('checks_member_raw.')])
+check_member = sorted([mod for mod in sys.modules if mod.startswith('checks.') and not mod.startswith('checks.a')])
 
 for member_raw in sorted(members_raw):
     # FIXME: we're assuming this always resolves (it should)
     member = [member for member in members if int(member["Adressnummer"]) == int(member_raw['AdrNr'])][0]
 
     verbose_member_header = True
-    for mod in check_member + check_member_raw:
-        check_func = getattr(sys.modules[mod], 'check')
-        if mod.startswith('checks_member.'):
-            result = check_func(member,mod.split('.',2)[1])
-        elif mod.startswith('checks_member_raw.'):
-            result = check_func(member_raw,mod.split('.',2)[1])
+    for mod in check_member:
+        check_func  = getattr(sys.modules[mod], 'check')
+        check_id    = mod.split('.',1)[1]
+        check_name  = check_id.split('_',1)[1]
+        check_flags = list(check_id.split('_',1)[0])
+
+        contracts   = None
+        debits      = None
+        withdrawals = None
+        if 'r' not in check_flags:
+            result = check_func(member,contracts=contracts,debits=debits,name=check_name)
+        elif 'r' in check_flags:
+            result = check_func(member_raw,contracts=contracts,debits=debits,name=check_name)
         else:
             raise Exception("Unknown check type")
 
@@ -135,14 +141,14 @@ for member_raw in sorted(members_raw):
             else:
                 warn = 1
 
-            if mod in warnings:
-                warnings[mod]     += warn
-                acknowledged[mod] += ack
-                ignored[mod]      += ign
+            if check_name in warnings:
+                warnings[check_name]     += warn
+                acknowledged[check_name] += ack
+                ignored[check_name]      += ign
             else:
-                warnings[mod]      = warn
-                acknowledged[mod]  = ack
-                ignored[mod]       = ign
+                warnings[check_name]      = warn
+                acknowledged[check_name]  = ack
+                ignored[check_name]       = ign
 
             if verbose and (warn or verbose_ignored):
                 if verbose_trailer:
@@ -151,7 +157,7 @@ for member_raw in sorted(members_raw):
                 if verbose_member_header:
                     print "member (%d/'%s'):" % (int(member['Adressnummer']), member['Crewname'])
                     verbose_member_header = False
-                print " ", mod, result[1]
+                print " %s: %s" % (check_name, result[1])
 
     if not verbose_member_header:
         print

@@ -104,7 +104,10 @@ if len(contributions) > 0:
         str(date.today().year-2),
         str(date.today().year-1),
         str(date.today().year),
-        "Gesamt"
+        "Gesamt",
+        "M",
+        "Kontakt",
+        "N"
     ])
     x.align["Crewname"]               = "l"
     x.align["Status"]                 = "l"
@@ -115,10 +118,29 @@ if len(contributions) > 0:
     x.align[str(date.today().year-2)] = "r"
     x.align[str(date.today().year-1)] = "r"
     x.align[str(date.today().year)  ] = "r"
-    x.align["Gesamt"           ]      = "r"
+    x.align["Gesamt"]                 = "r"
+    x.align["M"]                      = "r"
+    x.align["Kontakt"]                = "r"
+    x.align["N"]                      = "r"
+
+    maxlen_name = 0
+    maxlen_stat = 0
+    error_total = 0
+    yearb_total = 0 # Years before
+    yearx_total = 0 # Year-3
+    yeary_total = 0 # Year-2
+    yearz_total = 0 # Year-1
+    yearn_total = 0 # Year (now)
+    total_total = 0
     for contributor in sorted(contributions):
         if contributions[contributor]['total']['unpaid'] == 0:
             continue
+
+        if len(contributor) > maxlen_name:
+            maxlen_name = len(contributor)
+
+        if len(members[contributor]['Status']) > maxlen_stat:
+            maxlen_stat = len(members[contributor]['Status'])
 
         yearb_sum = 0 # Sum for years before
         yearb = ""    # Years before
@@ -129,15 +151,20 @@ if len(contributions) > 0:
         for year in contributions[contributor]['years']:
             if year == str(date.today().year):
                 yearn = u"%.02f€" % contributions[contributor]['years'][year]['unpaid']
+                yearn_total += contributions[contributor]['years'][year]['unpaid']
             elif year == str(date.today().year-1):
                 yearz = u"%.02f€" % contributions[contributor]['years'][year]['unpaid']
+                yearz_total += contributions[contributor]['years'][year]['unpaid']
             elif year == str(date.today().year-2):
                 yeary = u"%.02f€" % contributions[contributor]['years'][year]['unpaid']
+                yeary_total += contributions[contributor]['years'][year]['unpaid']
             elif year == str(date.today().year-3):
                 yearx = u"%.02f€" % contributions[contributor]['years'][year]['unpaid']
+                yearx_total += contributions[contributor]['years'][year]['unpaid']
             else:
-                yearb_sum += contributions[contributor]['years'][year]['unpaid']
+                yearb_sum   += contributions[contributor]['years'][year]['unpaid']
                 yearb = u"%.02f€" % yearb_sum
+                yearb_total += contributions[contributor]['years'][year]['unpaid']
         x.add_row([
             contributor,
             members[contributor]['Status'],
@@ -148,8 +175,43 @@ if len(contributions) > 0:
             yeary,
             yearz,
             yearn,
-            u"%.02f€" % contributions[contributor]['total']['unpaid']
+            u"%.02f€" % contributions[contributor]['total']['unpaid'],
+            "?",
+            "--.--.----",
+            "?"
         ])
+        total_total += contributions[contributor]['total']['unpaid']
+
+    x.add_row([
+        '=' * maxlen_name,
+        '=' * maxlen_stat,
+        "=",
+        "===",
+        "=" * len(u"%.02f€" % yearb_total),
+        "=" * len(u"%.02f€" % yearx_total),
+        "=" * len(u"%.02f€" % yeary_total),
+        "=" * len(u"%.02f€" % yearz_total),
+        "=" * len(u"%.02f€" % yearn_total),
+        "=" * len(u"%.02f€" % total_total),
+        "=",
+        "==========",
+        "="
+    ])
+    x.add_row([
+        "",
+        "Total",
+        "",
+        "???",
+        u"%.02f€" % yearb_total,
+        u"%.02f€" % yearx_total,
+        u"%.02f€" % yeary_total,
+        u"%.02f€" % yearz_total,
+        u"%.02f€" % yearn_total,
+        u"%.02f€" % total_total,
+        "",
+        "",
+        ""
+    ])
     print x
 
     sys.exit(1)

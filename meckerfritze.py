@@ -83,7 +83,7 @@ warnings        = {}
 acknowledged    = {}
 ignored         = {}
 verbose         = True
-verbose_ignored = False
+verbose_ignored = True
 verbose_trailer = "meckerfritze verbose details:\n"
 
 check_all = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[mod], 'check') and mod.startswith('checks.a')])
@@ -119,7 +119,7 @@ check_member = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[
 for member_raw in sorted(members_raw):
     # FIXME: we're assuming this always resolves (it should)
     member = [member for member in members if int(member["Adressnummer"]) == int(member_raw['AdrNr'])][0]
-    #if not int(member["Adressnummer"]) in [223, 737]:
+    #if not int(member["Adressnummer"]) in [223, 711, 737]:
     #    continue
 
     verbose_member_header = True
@@ -131,7 +131,7 @@ for member_raw in sorted(members_raw):
 
         # get additional data
         contracts   = None
-        if 'r' in check_flags:
+        if 'c' in check_flags:
             if not member["Adressnummer"] in member_contracts_raw:
                 try:
                     # using ~/.netrc for authentication
@@ -154,7 +154,7 @@ for member_raw in sorted(members_raw):
 
             contracts = member_contracts_raw[member["Adressnummer"]]
 
-# call all checker modules
+        # call all checker modules
         debits      = None
         withdrawals = None
         if 'r' not in check_flags:

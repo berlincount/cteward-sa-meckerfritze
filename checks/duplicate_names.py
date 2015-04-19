@@ -1,5 +1,5 @@
 
-def check(members_raw, check='duplicate_names'):
+def check_all(members_raw):
     members_by_name = {}
     duplicates = []
     for member_raw in members_raw:

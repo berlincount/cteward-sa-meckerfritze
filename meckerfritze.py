@@ -85,17 +85,26 @@ ignored         = {}
 verbose         = True
 verbose_ignored = True
 verbose_trailer = "meckerfritze verbose details:\n"
+debug           = False
 
-check_all = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[mod], 'check') and mod.startswith('checks.a')])
+## catch problems
+#check_broken = sorted([mod for mod in sys.modules.copy() if mod.startswith('checks.') and not (hasattr(sys.modules[mod], 'check_all') or hasattr(sys.modules[mod], 'check_member'))])
+#if len(check_broken):
+#    pprint(check_broken)
+#    raise Exception("Broken check modules?")
+
+check_all = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[mod], 'check_all') and mod.startswith('checks.')])
 for mod in check_all:
-    check_func = getattr(sys.modules[mod], 'check')
-    check_id    = mod.split('.',1)[1]
-    check_name  = check_id.split('_',1)[1]
-    check_flags = list(check_id.split('_',1)[0])
-    if mod.startswith('checks.a_'):
-        result = check_func(members,check_name)
-    elif mod.startswith('checks.ar_'):
-        result = check_func(members_raw,check_name)
+    check_func = getattr(sys.modules[mod], 'check_all')
+    check_name  = mod.split('.',1)[1]
+    if 'members' in inspect.getargspec(check_func)[0]:
+        if debug:
+          print "DBG: check_all (cooked) from %s" % check_name
+        result = check_func(members)
+    elif 'members_raw' in inspect.getargspec(check_func)[0]:
+        if debug:
+          print "DBG: check_all (raw) from %s" % check_name
+        result = check_func(members_raw)
     else:
         raise Exception("Unknown check type for check_all")
 
@@ -114,7 +123,7 @@ for mod in check_all:
 if not verbose_trailer:
     print
 
-check_member = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[mod], 'check') and mod.startswith('checks.') and not mod.startswith('checks.a')])
+check_member = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[mod], 'check_member') and mod.startswith('checks.')])
 
 for member_raw in sorted(members_raw):
     # FIXME: we're assuming this always resolves (it should)
@@ -124,14 +133,17 @@ for member_raw in sorted(members_raw):
 
     verbose_member_header = True
     for mod in check_member:
-        check_func  = getattr(sys.modules[mod], 'check')
-        check_id    = mod.split('.',1)[1]
-        check_name  = check_id.split('_',1)[1]
-        check_flags = list(check_id.split('_',1)[0])
+        check_func  = getattr(sys.modules[mod], 'check_member')
+        check_name  = mod.split('.',1)[1]
+
+        args = {}
+        if 'member' in inspect.getargspec(check_func)[0]:
+          args['member'] = member
+        elif 'member_raw' in inspect.getargspec(check_func)[0]:
+          args['member_raw'] = member_raw
 
         # get additional data
-        contracts   = None
-        if 'c' in check_flags:
+        if 'contracts_raw' in inspect.getargspec(check_func)[0]:
             if not member["Adressnummer"] in member_contracts_raw:
                 try:
                     # using ~/.netrc for authentication
@@ -152,17 +164,13 @@ for member_raw in sorted(members_raw):
                     traceback.print_exc(file=sys.stdout)
                     sys.exit(1);
 
-            contracts = member_contracts_raw[member["Adressnummer"]]
+            args['contracts_raw'] = member_contracts_raw[member["Adressnummer"]]
 
         # call all checker modules
-        debits      = None
-        withdrawals = None
-        if 'r' not in check_flags:
-            result = check_func(member,contracts=contracts,debits=debits,name=check_name)
-        elif 'r' in check_flags:
-            result = check_func(member_raw,contracts=contracts,debits=debits,name=check_name)
-        else:
-            raise Exception("Unknown check type")
+        if debug:
+          print "DBG: check_member (..) from %s" % check_name
+          pprint(args.keys())
+        result = check_func(**args)
 
         if result[0] == False:
             warn = 0

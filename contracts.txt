@@ -1,0 +1,11 @@
+1;Member (Regulär);m;2008;1;17
+2;Member (Förder);m;2008;1;23
+3;Member (Sozial);m;2008;1;10
+4;Member (Megaförder);m;2008;1;42
+5;Member (Sonder);m;2008;1;0
+6;Fördermitglied;m;2009;1;5
+7;Firmenmitglied;m;2011;1;170
+8;Member (Ruhend);m;2010;1;0
+9;Member (Ehren);m;2008;1;0
+10;Passiv;m;2010;1;
+100;Gebühren/Rücklastschriften;m;2010;1;

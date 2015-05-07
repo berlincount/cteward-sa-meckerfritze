@@ -1,1 +1,2 @@
+#$#
 # ** Fehlendes / inaktives SEPA-Mandate

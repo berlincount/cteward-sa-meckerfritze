@@ -1,3 +1,4 @@
+#$#
 ### Unbefristeter Sozialtarif fuer nicht-(Alters-)Rentner (<~65)
 ##foreach ($members_num as $member) {
 ##   if (!isset($member['vertrag']) || !count($member['vertrag']))

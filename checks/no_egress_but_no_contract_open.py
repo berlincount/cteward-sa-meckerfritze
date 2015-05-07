@@ -1,3 +1,4 @@
+#$#
 ### kein offener Vertrag ohne Austritt:\n";
 ##foreach ($members_num as $member) {
 ##   # Keine Vertraege? Wurde oben gemeldet, Naechster!

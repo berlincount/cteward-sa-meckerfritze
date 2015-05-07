@@ -6,10 +6,12 @@ import inspect
 import os
 import requests
 import traceback
+import json
 from prettytable import PrettyTable
 from pprint import pprint
+import argparse
 
-def meckerfritze():
+def meckerfritze(mainargs):
     # ensure utf-8 encoding
     import sys
     reload(sys)
@@ -77,10 +79,20 @@ def meckerfritze():
         sys.exit(1);
 
     # caches for additional data
-    member_contracts_raw = {}
-    #import cPickle as pickle
-    #if os.path.isfile('member_contracts_raw.pickle'):
-    #    member_contracts_raw = pickle.load( open( "member_contracts_raw.pickle", "rb" ) )
+    member_contracts_raw   = {}
+    member_debits_raw      = {}
+    member_withdrawals_raw = {}
+    member_memo_raw        = {}
+
+    if mainargs.cache:
+        if os.path.isfile('member_contracts_raw.json'):
+            member_contracts_raw   = json.load( open( "member_contracts_raw.json",   "rb" ) )
+        if os.path.isfile('member_debits_raw.json'):
+            member_debits_raw      = json.load( open( "member_debits_raw.json",      "rb" ) )
+        if os.path.isfile('member_withdrawals_raw.json'):
+            member_withdrawals_raw = json.load( open( "member_withdrawals_raw.json", "rb" ) )
+        if os.path.isfile('member_memo_raw.json'):
+            member_memo_raw        = json.load( open( "member_memo_raw.json",        "rb" ) )
 
     # call all checker modules
     warnings        = {}
@@ -147,8 +159,28 @@ def meckerfritze():
               args['member_raw'] = member_raw
 
             # get additional data
+            if not '%04d' % member["Adressnummer"] in member_memo_raw:
+                try:
+                    # using ~/.netrc for authentication
+                    r = requests.get('%s/legacy/member/%s/memo' % (baseurl,member['Crewname']))
+
+                    if r.status_code != 200:
+                        print "Server request failed, code %d\n" % r.status_code
+                        print r.text
+                        sys.exit(1)
+                    member_memo_raw['%04d' % member["Adressnummer"]] = r.json()
+                except KeyboardInterrupt:
+                    print "Shutdown requested...exiting"
+                except requests.exceptions.SSLError as e:
+                    print "SSL certificate error.\n"
+                    print e
+                    sys.exit(1)
+                except Exception as e:
+                    traceback.print_exc(file=sys.stdout)
+                    sys.exit(1);
+
             if 'contracts_raw' in inspect.getargspec(check_func)[0]:
-                if not member["Adressnummer"] in member_contracts_raw:
+                if not '%04d' % member["Adressnummer"] in member_contracts_raw:
                     try:
                         # using ~/.netrc for authentication
                         r = requests.get('%s/legacy/member/%s/contract/*/raw' % (baseurl,member['Crewname']))
@@ -157,7 +189,7 @@ def meckerfritze():
                             print "Server request failed, code %d\n" % r.status_code
                             print r.text
                             sys.exit(1)
-                        member_contracts_raw[member["Adressnummer"]] = r.json()
+                        member_contracts_raw['%04d' % member["Adressnummer"]] = r.json()
                     except KeyboardInterrupt:
                         print "Shutdown requested...exiting"
                     except requests.exceptions.SSLError as e:
@@ -168,7 +200,53 @@ def meckerfritze():
                         traceback.print_exc(file=sys.stdout)
                         sys.exit(1);
 
-                args['contracts_raw'] = member_contracts_raw[member["Adressnummer"]]
+                args['contracts_raw'] = member_contracts_raw['%04d' % member["Adressnummer"]]
+
+            if 'debits_raw' in inspect.getargspec(check_func)[0]:
+                if not '%04d' % member["Adressnummer"] in member_debits_raw:
+                    try:
+                        # using ~/.netrc for authentication
+                        r = requests.get('%s/legacy/member/%s/debit/*/raw' % (baseurl,member['Crewname']))
+
+                        if r.status_code != 200:
+                            print "Server request failed, code %d\n" % r.status_code
+                            print r.text
+                            sys.exit(1)
+                        member_debits_raw['%04d' % member["Adressnummer"]] = r.json()
+                    except KeyboardInterrupt:
+                        print "Shutdown requested...exiting"
+                    except requests.exceptions.SSLError as e:
+                        print "SSL certificate error.\n"
+                        print e
+                        sys.exit(1)
+                    except Exception as e:
+                        traceback.print_exc(file=sys.stdout)
+                        sys.exit(1);
+
+                args['debits_raw'] = member_debits_raw['%04d' % member["Adressnummer"]]
+
+            if 'withdrawals_raw' in inspect.getargspec(check_func)[0]:
+                if not '%04d' % member["Adressnummer"] in member_withdrawals_raw:
+                    try:
+                        # using ~/.netrc for authentication
+                        r = requests.get('%s/legacy/member/%s/withdrawal/*/raw' % (baseurl,member['Crewname']))
+
+                        if r.status_code != 200:
+                            print "Server request failed, code %d\n" % r.status_code
+                            print r.text
+                            sys.exit(1)
+                        member_withdrawals_raw['%04d' % member["Adressnummer"]] = r.json()
+                    except KeyboardInterrupt:
+                        print "Shutdown requested...exiting"
+                    except requests.exceptions.SSLError as e:
+                        print "SSL certificate error.\n"
+                        print e
+                        sys.exit(1)
+                    except Exception as e:
+                        traceback.print_exc(file=sys.stdout)
+                        sys.exit(1);
+
+                args['withdrawals_raw'] = member_withdrawals_raw['%04d' % member["Adressnummer"]]
 
             # call all checker modules
             if debug:
@@ -207,7 +285,11 @@ def meckerfritze():
         if not verbose_member_header:
             print
 
-    #pickle.dump( member_contracts_raw, open( "member_contracts_raw.pickle", "wb" ) )
+    if mainargs.cache:
+            json.dump( member_contracts_raw,   open( "member_contracts_raw.json",   "wb" ), sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump( member_debits_raw,      open( "member_debits_raw.json",      "wb" ), sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump( member_withdrawals_raw, open( "member_withdrawals_raw.json", "wb" ), sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump( member_memo_raw,        open( "member_memo_raw.json",        "wb" ), sort_keys=True, indent=4, separators=(',', ': '))
 
     if len(warnings) > 0:
         if verbose:
@@ -229,4 +311,6 @@ def meckerfritze():
         sys.exit(0)
 
 if __name__ == "__main__":
-    meckerfritze()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cache', help='use caching (debug only)', action='store_true')
+    meckerfritze(parser.parse_args())

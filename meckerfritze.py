@@ -78,6 +78,9 @@ def meckerfritze():
 
     # caches for additional data
     member_contracts_raw = {}
+    #import cPickle as pickle
+    #if os.path.isfile('member_contracts_raw.pickle'):
+    #    member_contracts_raw = pickle.load( open( "member_contracts_raw.pickle", "rb" ) )
 
     # call all checker modules
     warnings        = {}
@@ -203,6 +206,8 @@ def meckerfritze():
 
         if not verbose_member_header:
             print
+
+    #pickle.dump( member_contracts_raw, open( "member_contracts_raw.pickle", "wb" ) )
 
     if len(warnings) > 0:
         if verbose:

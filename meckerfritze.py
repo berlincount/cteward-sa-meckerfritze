@@ -98,10 +98,10 @@ def meckerfritze(mainargs):
     warnings        = {}
     acknowledged    = {}
     ignored         = {}
-    verbose         = True
-    verbose_ignored = True
+    verbose         = mainargs.verbose
+    verbose_ignored = mainargs.ignored
     verbose_trailer = "meckerfritze verbose details:\n"
-    debug           = False
+    debug           = mainargs.debug
 
     ## catch problems
     #check_broken = sorted([mod for mod in sys.modules.copy() if mod.startswith('checks.') and not (hasattr(sys.modules[mod], 'check_all') or hasattr(sys.modules[mod], 'check_member'))])
@@ -312,5 +312,9 @@ def meckerfritze(mainargs):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cache', help='use caching (debug only)', action='store_true')
+    parser.add_argument('--cache',        help='use caching (debug only)', action='store_true')
+    parser.add_argument('--verbose',      help='show details', action='store_true')
+    parser.add_argument('--acknowledged', help='show also acknowledged problems (with verbose only)', action='store_true')
+    parser.add_argument('--ignored',      help='show also problems with ex-members (with verbose only)', action='store_true')
+    parser.add_argument('--debug',        help='show check calls', action='store_true')
     meckerfritze(parser.parse_args())

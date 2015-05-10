@@ -1,9 +1,9 @@
 import dateutil.parser
+from dateutil.tz import tzutc
 import datetime
-import pytz
 
 def check_member(member_raw):
-    if member_raw['Austritt'] and dateutil.parser.parse(member_raw['Austritt']) > datetime.datetime.now(pytz.timezone('Europe/Berlin'))+datetime.timedelta(weeks=56):
+    if member_raw['Austritt'] and dateutil.parser.parse(member_raw['Austritt']) > datetime.datetime.now(tzutc())+datetime.timedelta(weeks=56):
         return (False, 'member discharged more than a year in the future')
     return (True,)
 

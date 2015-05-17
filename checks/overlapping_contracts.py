@@ -31,9 +31,21 @@ def overlapdays(contract_a, contract_b):
   return (earliest_end - latest_start).days+1
 
 def check_member(member_raw, contracts_raw):
-    if member_raw['Eintritt'] and len(contracts_raw) > 1 and not all(overlapdays(a,b) <= 0 for a,b in itertools.permutations(contracts_raw,2)):
-        return (False, "some of the member's %d contracts overlap" % len(contracts_raw))
-    return (True,)
+    if not member_raw['Eintritt'] or len(contracts_raw) <= 1:
+        return (True,)
+
+    message = ''
+    for a,b in itertools.combinations(contracts_raw,2):
+        result = overlapdays(a,b)
+        if (result > 0):
+            if message != '':
+                message += ', '
+            message += "contracts %d & %d overlap by %d days" % (a['VertragNr'],b['VertragNr'],result)
+
+    if message != '':
+        return (False, message)
+    else:
+        return (True,)
 
 import unittest
 class Testcases(unittest.TestCase):
@@ -125,16 +137,40 @@ class Testcases(unittest.TestCase):
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
         }]),(True,))
 
-    def test_fail_multiple_contracts(self):
+    def test_fail_multiple_contracts_single(self):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
+            'VertragNr':    1,
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
+            'VertragNr':    2,
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
+            'VertragNr':    3,
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
-        }]),(False, "some of the member's 3 contracts overlap"))
+        }]),(False, "contracts 1 & 2 overlap by 30 days"))
+
+    def test_fail_multiple_contracts_multiple(self):
+        self.assertEqual(check_member({
+            'Eintritt': 'set-to-something',
+        },[{
+            'VertragNr':    1,
+            'VertragBegin': '2015-04-01T00:00:00.000Z',
+            'VertragEnde':  '2015-04-30T00:00:00.000Z'
+            },{
+            'VertragNr':    2,
+            'VertragBegin': '2015-04-01T00:00:00.000Z',
+            'VertragEnde':  '2015-04-30T00:00:00.000Z'
+            },{
+            'VertragNr':    3,
+            'VertragBegin': '2015-05-01T00:00:00.000Z',
+            'VertragEnde':  '2015-05-31T00:00:00.000Z'
+            },{
+            'VertragNr':    4,
+            'VertragBegin': '2015-05-01T00:00:00.000Z',
+            'VertragEnde':  '2015-05-31T00:00:00.000Z'
+        }]),(False, "contracts 1 & 2 overlap by 30 days, contracts 3 & 4 overlap by 31 days"))

@@ -7,7 +7,7 @@ from pprint import pprint
 
 def overlapdays(contract_a, contract_b):
   if not contract_a['VertragBegin']:
-    return 99999 # TODO: should raise or something
+    return float('NaN')
   else:
     contract_a_start = dateutil.parser.parse(contract_a['VertragBegin'])
   if not contract_a['VertragEnde']:
@@ -16,7 +16,7 @@ def overlapdays(contract_a, contract_b):
     contract_a_end = dateutil.parser.parse(contract_a['VertragEnde'])
 
   if not contract_b['VertragBegin']:
-    return 99999 # TODO: should raise or something
+    return float('NaN')
   else:
     contract_b_start = dateutil.parser.parse(contract_b['VertragBegin'])
   if not contract_b['VertragEnde']:
@@ -49,6 +49,15 @@ def check_member(member_raw, contracts_raw):
 
 import unittest
 class Testcases(unittest.TestCase):
+    def test_overlap_error(self):
+        self.assertNotEqual(overlapdays({
+            'VertragBegin': False,
+            'VertragEnde':  False,
+            },{
+            'VertragBegin': False,
+            'VertragEnde':  False,
+            }), 0)
+
     def test_overlap_none(self):
         self.assertEqual(overlapdays({
             'VertragBegin': '2015-04-01T00:00:00.000Z',

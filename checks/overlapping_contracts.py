@@ -6,12 +6,16 @@ import itertools
 from pprint import pprint
 
 def overlapdays(contract_a, contract_b):
+  now = datetime.datetime.now(tzutc())
   if not contract_a['VertragBegin']:
     return float('NaN')
   else:
     contract_a_start = dateutil.parser.parse(contract_a['VertragBegin'])
   if not contract_a['VertragEnde']:
-    contract_a_end = datetime.datetime.now(tzutc())
+    if contract_a_start > now:
+      contract_a_end = contract_a_start
+    else:
+      contract_a_end = now
   else:
     contract_a_end = dateutil.parser.parse(contract_a['VertragEnde'])
 
@@ -20,7 +24,10 @@ def overlapdays(contract_a, contract_b):
   else:
     contract_b_start = dateutil.parser.parse(contract_b['VertragBegin'])
   if not contract_b['VertragEnde']:
-    contract_b_end = datetime.datetime.now(tzutc())
+    if contract_b_start > now:
+      contract_b_end = contract_b_start
+    else:
+      contract_b_end = now
   else:
     contract_b_end = dateutil.parser.parse(contract_b['VertragEnde'])
 
@@ -40,7 +47,7 @@ def check_member(member_raw, contracts_raw):
         if (result > 0):
             if message != '':
                 message += ', '
-            message += "contracts %d & %d overlap by %d days" % (a['VertragNr'],b['VertragNr'],result)
+            message += "contracts %d & %d overlap by %d days" % (int(a['VertragNr']),int(b['VertragNr']),result)
 
     if message != '':
         return (False, message)
@@ -65,6 +72,15 @@ class Testcases(unittest.TestCase):
             },{
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
+            }), 0)
+
+    def test_overlap_none_open(self):
+        self.assertEqual(overlapdays({
+            'VertragBegin': '2014-01-01T00:00:00.000Z',
+            'VertragEnde':  '2015-09-30T00:00:00.000Z'
+            },{
+            'VertragBegin': '2015-10-01T00:00:00.000Z',
+            'VertragEnde':  None,
             }), 0)
 
     def test_overlap_one_end(self):
@@ -133,6 +149,17 @@ class Testcases(unittest.TestCase):
             },{
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
+        }]),(True,))
+
+    def test_success_multiple_contracts_open(self):
+        self.assertEqual(check_member({
+            'Eintritt': 'set-to-something',
+        },[{
+            'VertragBegin': '2014-01-01T00:00:00.000Z',
+            'VertragEnde':  '2015-09-30T00:00:00.000Z'
+            },{
+            'VertragBegin': '2015-10-01T00:00:00.000Z',
+            'VertragEnde':  None
         }]),(True,))
 
     def test_success_multiple_contracts_gap(self):

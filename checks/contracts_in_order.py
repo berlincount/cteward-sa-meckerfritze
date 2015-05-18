@@ -1,10 +1,3 @@
-import dateutil.parser
-from dateutil.tz import tzutc
-import datetime
-import itertools
-
-from pprint import pprint
-
 def check_member(member_raw, contracts_raw):
     if not member_raw['Eintritt'] or len(contracts_raw) <= 1:
         return (True,)
@@ -16,9 +9,9 @@ def check_member(member_raw, contracts_raw):
         if contract['VertragBegin'] < lastend:
             if message != '':
                 message += ', '
-            message += "contracts %d and %d seem out of order" % (lastnum,int(contract['VertragNr']))
+            message += "contracts %d and %d seem out of order" % (lastnum,int(contract['VertragNr'] and contract['VertragNr'] or 0))
         lastend = contract['VertragEnde']
-        lastnum = int(contract['VertragNr'])
+        lastnum = int(contract['VertragNr'] and contract['VertragNr'] or 0)
 
     if message != '':
         return (False, message)
@@ -30,7 +23,7 @@ class Testcases(unittest.TestCase):
     def test_success_no_contracts(self):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
-        },[{}]),(True,))
+        },[]),(True,))
 
     def test_success_single_contract(self):
         self.assertEqual(check_member({
@@ -54,15 +47,15 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-01-01T00:00:00.000Z',
             'VertragEnde':  '2015-01-31T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-02-01T00:00:00.000Z',
             'VertragEnde':  '2015-02-28T00:00:00.000Z'
             },{
-            'VertragNr':    3,
+            'VertragNr':    '3',
             'VertragBegin': '2015-03-01T00:00:00.000Z',
             'VertragEnde':  '2015-03-31T00:00:00.000Z'
         }]),(True,))
@@ -71,15 +64,15 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-01-01T00:00:00.000Z',
             'VertragEnde':  '2015-01-31T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-03-01T00:00:00.000Z',
             'VertragEnde':  '2015-03-31T00:00:00.000Z'
             },{
-            'VertragNr':    3,
+            'VertragNr':    '3',
             'VertragBegin': '2015-02-01T00:00:00.000Z',
             'VertragEnde':  '2015-02-28T00:00:00.000Z'
         }]),(False,'contracts 2 and 3 seem out of order'))

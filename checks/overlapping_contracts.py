@@ -177,15 +177,15 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
-            'VertragNr':    3,
+            'VertragNr':    '3',
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
         }]),(False, "contracts 1 & 2 overlap by 30 days"))
@@ -194,19 +194,19 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
-            'VertragNr':    3,
+            'VertragNr':    '3',
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
             },{
-            'VertragNr':    4,
+            'VertragNr':    '4',
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
         }]),(False, "contracts 1 & 2 overlap by 30 days, contracts 3 & 4 overlap by 31 days"))

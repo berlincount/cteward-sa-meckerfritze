@@ -141,7 +141,7 @@ def meckerfritze(mainargs):
 
     check_member = sorted([mod for mod in sys.modules.copy() if hasattr(sys.modules[mod], 'check_member') and mod.startswith('checks.')])
 
-    for member_raw in sorted(members_raw):
+    for member_raw in sorted(members_raw, key=lambda member: int(member['AdrNr'])):
         # FIXME: we're assuming this always resolves (it should)
         member = [member for member in members if int(member["Adressnummer"]) == int(member_raw['AdrNr'])][0]
         #if not int(member["Adressnummer"]) in [223, 711, 737]:
@@ -278,7 +278,7 @@ def meckerfritze(mainargs):
                         print verbose_trailer
                         verbose_trailer = False
                     if verbose_member_header:
-                        print "member (%d/'%s'):" % (int(member['Adressnummer']), member['Crewname'])
+                        print "member (%d/'%s')%s:" % (int(member['Adressnummer']), member['Crewname'], ign and ' -- INACTIVE!' or '')
                         verbose_member_header = False
                     print " %s: %s" % (check_name, result[1])
 
@@ -291,6 +291,7 @@ def meckerfritze(mainargs):
             json.dump( member_withdrawals_raw, open( "member_withdrawals_raw.json", "wb" ), sort_keys=True, indent=4, separators=(',', ': '))
             json.dump( member_memo_raw,        open( "member_memo_raw.json",        "wb" ), sort_keys=True, indent=4, separators=(',', ': '))
 
+    totals = {'warnings': 0, 'acknowledged': 0, 'ignored': 0}
     if len(warnings) > 0:
         if verbose:
             print
@@ -304,6 +305,11 @@ def meckerfritze(mainargs):
         x.align["ign"]  = "r"
         for warning in sorted(warnings):
             x.add_row([warning, warnings[warning], acknowledged[warning], ignored[warning]])
+            totals['warnings']     += warnings[warning]
+            totals['acknowledged'] += acknowledged[warning]
+            totals['ignored']      += ignored[warning]
+        x.add_row(['======================','====','====','===='])
+        x.add_row(['Total',totals['warnings'],totals['acknowledged'],totals['ignored']])
         print x
 
         sys.exit(1)

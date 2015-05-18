@@ -15,14 +15,14 @@ def check_member(member_raw, contracts_raw):
     message = ''
     for a,b in itertools.combinations(contracts_raw,2):
         # skip non-neighbouring contracts
-        if int(b['VertragNr'])-int(a['VertragNr']) != 1:
+        if int(b['VertragNr'] and b['VertragNr'] or 0)-int(a['VertragNr'] and a['VertragNr'] or 0) != 1:
             continue
 
         result = overlapdays(a,b)
         if (result < 0):
             if message != '':
                 message += ', '
-            message += "contracts %d & %d have a gap of %d days" % (int(a['VertragNr']),int(b['VertragNr']),-result)
+            message += "contracts %d & %d have a gap of %d days" % (int(a['VertragNr'] and a['VertragNr'] or 0),int(b['VertragNr'] and b['VertragNr'] or 0),-result)
 
     if message != '':
         return (False, message)
@@ -34,7 +34,7 @@ class Testcases(unittest.TestCase):
     def test_success_no_contracts(self):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
-        },[{}]),(True,))
+        },[]),(True,))
 
     def test_success_single_contract(self):
         self.assertEqual(check_member({
@@ -47,11 +47,11 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
         }]),(True,))
@@ -60,11 +60,11 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2014-01-01T00:00:00.000Z',
             'VertragEnde':  '2015-09-30T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-10-01T00:00:00.000Z',
             'VertragEnde':  None
         }]),(True,))
@@ -73,15 +73,15 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-01-01T00:00:00.000Z',
             'VertragEnde':  '2015-01-31T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-02-01T00:00:00.000Z',
             'VertragEnde':  '2015-02-28T00:00:00.000Z'
             },{
-            'VertragNr':    3,
+            'VertragNr':    '3',
             'VertragBegin': '2015-03-01T00:00:00.000Z',
             'VertragEnde':  '2015-03-31T00:00:00.000Z'
         }]),(True,))
@@ -90,11 +90,11 @@ class Testcases(unittest.TestCase):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
-            'VertragNr':    1,
+            'VertragNr':    '1',
             'VertragBegin': '2015-01-01T00:00:00.000Z',
             'VertragEnde':  '2015-03-30T00:00:00.000Z'
             },{
-            'VertragNr':    2,
+            'VertragNr':    '2',
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
         }]),(False, "contracts 1 & 2 have a gap of 31 days"))

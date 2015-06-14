@@ -18,7 +18,7 @@ class Testcases(unittest.TestCase):
             'Betreung': 'WEIBLICH',
         },None),(True,))
 
-    def test_success_female(self):
+    def test_success_male(self):
         self.assertEqual(check_member({
             'Betreung': 'MÄNNLICH',
         },None),(True,))

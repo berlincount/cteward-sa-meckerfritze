@@ -3,8 +3,6 @@ from dateutil.tz import tzutc
 import datetime
 import itertools
 
-from pprint import pprint
-
 def overlapdays(contract_a, contract_b):
   now = datetime.datetime.now(tzutc())
   if not contract_a['VertragBegin']:

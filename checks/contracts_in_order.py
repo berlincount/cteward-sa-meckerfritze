@@ -32,18 +32,20 @@ class Testcases(unittest.TestCase):
             'VertragBegin': '2015-01-01T00:00:00.000Z'
         }]),(True,))
 
-    def test_success_multiple_contracts(self):
+    def test_success_two_contracts(self):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{
+            'VertragNr':    '1',
             'VertragBegin': '2015-04-01T00:00:00.000Z',
             'VertragEnde':  '2015-04-30T00:00:00.000Z'
             },{
+            'VertragNr':    '2',
             'VertragBegin': '2015-05-01T00:00:00.000Z',
             'VertragEnde':  '2015-05-31T00:00:00.000Z'
         }]),(True,))
 
-    def test_success_multiple_contracts(self):
+    def test_success_three_contracts(self):
         self.assertEqual(check_member({
             'Eintritt': 'set-to-something',
         },[{

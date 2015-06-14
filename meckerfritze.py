@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import pkgutil
-import sys
 import inspect
 import os
 import requests

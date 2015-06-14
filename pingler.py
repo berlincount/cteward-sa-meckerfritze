@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pkgutil
-import sys
 import inspect
-import os
 import requests
 import traceback
 from prettytable import PrettyTable

@@ -112,6 +112,8 @@ def meckerfritze(mainargs):
     for mod in check_all:
         check_func = getattr(sys.modules[mod], 'check_all')
         check_name  = mod.split('.',1)[1]
+        if mainargs.only and mod != mainargs.only:
+            continue
         if 'members' in inspect.getargspec(check_func)[0]:
             if debug:
               print "DBG: check_all (cooked) from %s" % check_name
@@ -150,6 +152,9 @@ def meckerfritze(mainargs):
         for mod in check_member:
             check_func  = getattr(sys.modules[mod], 'check_member')
             check_name  = mod.split('.',1)[1]
+
+            if mainargs.only and check_name != mainargs.only:
+              continue
 
             args = {}
             if 'member' in inspect.getargspec(check_func)[0]:
@@ -322,4 +327,5 @@ if __name__ == "__main__":
     parser.add_argument('--acknowledged', help='show also acknowledged problems (with verbose only)', action='store_true')
     parser.add_argument('--ignored',      help='show also problems with ex-members (with verbose only)', action='store_true')
     parser.add_argument('--debug',        help='show check calls', action='store_true')
+    parser.add_argument('--only',         help='only run a specific check')
     meckerfritze(parser.parse_args())

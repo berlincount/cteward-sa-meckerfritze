@@ -1,4 +1,5 @@
 language: python
-install: true
+install:
+ - pip install python-dateutil
 script: ./testall.sh
 sudo: false

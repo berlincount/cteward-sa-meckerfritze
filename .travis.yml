@@ -1,5 +1,5 @@
 language: python
 install:
- - pip install python-dateutil requests
+ - pip install python-dateutil requests prettytable
 script: ./testall.sh
 sudo: false
